@@ -10,8 +10,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  *
@@ -22,6 +20,10 @@ public abstract class Connection {
     protected Connection() {
     }
 
+    public Connection(String method) {
+        this(null, method);
+    }
+
     public Connection(String base, String method) {
         if (base == null) {
             base = getBaseUrl();
@@ -29,9 +31,8 @@ public abstract class Connection {
         this.address = base + method;
         connect();
     }
-    
     private static final Logger LOG = Logger.getLogger(Connection.class.getName());
-    public HttpURLConnection con = null;
+    private HttpURLConnection con = null;
     private String address;
 
     public void connect() {
@@ -42,45 +43,52 @@ public abstract class Connection {
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-        con.setRequestProperty("User-Agent", getUserAgent());
-        con.setReadTimeout(30000);
-        con.setDoOutput(true);
+        getCon().setRequestProperty("User-Agent", getUserAgent());
+        getCon().setReadTimeout(30000);
+        getCon().setDoOutput(true);
     }
 
     public abstract String getBaseUrl();
 
     public abstract String getUserAgent();
 
-    public JSONObject post(String data) {
+    protected String postm(String data, boolean get) {
+        System.out.println(">>> " + data);
         try {
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(con.getOutputStream()));
+            PrintWriter pw = new PrintWriter(new OutputStreamWriter(getCon().getOutputStream()));
             pw.write(data);
             pw.close();
-            return get(false);
+            if (get) {
+                return get(false);
+            }
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Unable to write: {0}", e.toString());
         }
         return null;
     }
+    
+    public String postget(String data) {
+        return postm(data, true);
+    }
+    
+    public void post(String data) {
+        postm(data, false);
+    }
 
-    public JSONObject get() {
+    public String get() {
         return get(true);
     }
 
-    public JSONObject get(boolean useCache) {
+    public String get(boolean useCache) {
         if (useCache) {
             String ret = getCache();
             if (ret != null) {
-                System.out.println(ret);
-                try {
-                    return new JSONObject(ret);
-                } catch (JSONException ex) {
-                    Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                System.out.println("<<< " + ret);
+                return ret;
             }
         }
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(getCon().getInputStream()));
             StringBuilder sb = new StringBuilder(8192);
             String tmp;
             while ((tmp = br.readLine()) != null) {
@@ -97,18 +105,13 @@ public abstract class Connection {
             } catch (InterruptedException ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }
-            System.out.println(sb.toString());
-            try {
-                return new JSONObject(sb.toString());
-            } catch (JSONException ex) {
-                Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            System.out.println("<<< " + sb.toString());
+            return sb.toString();
         } catch (IOException e) {
             e.printStackTrace();
             LOG.log(Level.WARNING, "READ FAILED: {0}", e.toString());
             return null;
         }
-        return null;
     }
 
     private String getCache() {
@@ -122,5 +125,12 @@ public abstract class Connection {
             return cached;
         }
         return null;
+    }
+
+    /**
+     * @return the con
+     */
+    public HttpURLConnection getCon() {
+        return con;
     }
 }
