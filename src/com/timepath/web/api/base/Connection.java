@@ -25,14 +25,17 @@ public abstract class Connection {
     }
 
     public Connection(String base, String method) {
-        if (base == null) {
+        if(base == null) {
             base = getBaseUrl();
         }
         this.address = base + method;
         connect();
     }
+
     private static final Logger LOG = Logger.getLogger(Connection.class.getName());
+
     private HttpURLConnection con = null;
+
     private String address;
 
     public void connect() {
@@ -40,7 +43,7 @@ public abstract class Connection {
         try {
             URL u = URI.create(address).toURL();
             con = (HttpURLConnection) u.openConnection();
-        } catch (IOException ex) {
+        } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         getCon().setRequestProperty("User-Agent", getUserAgent());
@@ -58,19 +61,19 @@ public abstract class Connection {
             PrintWriter pw = new PrintWriter(new OutputStreamWriter(getCon().getOutputStream()));
             pw.write(data);
             pw.close();
-            if (get) {
+            if(get) {
                 return get(false);
             }
-        } catch (IOException e) {
+        } catch(IOException e) {
             LOG.log(Level.SEVERE, "Unable to write: {0}", e.toString());
         }
         return null;
     }
-    
+
     public String postget(String data) {
         return postm(data, true);
     }
-    
+
     public void post(String data) {
         postm(data, false);
     }
@@ -80,9 +83,9 @@ public abstract class Connection {
     }
 
     public String get(boolean useCache) {
-        if (useCache) {
+        if(useCache) {
             String ret = getCache();
-            if (ret != null) {
+            if(ret != null) {
                 System.out.println("<<< " + ret);
                 return ret;
             }
@@ -91,23 +94,23 @@ public abstract class Connection {
             BufferedReader br = new BufferedReader(new InputStreamReader(getCon().getInputStream()));
             StringBuilder sb = new StringBuilder(8192);
             String tmp;
-            while ((tmp = br.readLine()) != null) {
+            while((tmp = br.readLine()) != null) {
                 sb.append(tmp).append("\n");
             }
             br.close();
 
-            if (useCache) {
+            if(useCache) {
                 Cache.write(address, sb.toString());
             }
 
             try {
                 Thread.sleep(2000L);
-            } catch (InterruptedException ex) {
+            } catch(InterruptedException ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }
             System.out.println("<<< " + sb.toString());
             return sb.toString();
-        } catch (IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
             LOG.log(Level.WARNING, "READ FAILED: {0}", e.toString());
             return null;
@@ -117,10 +120,10 @@ public abstract class Connection {
     private String getCache() {
         byte[] t = Cache.read(address);
         String cached = null;
-        if (t != null) {
+        if(t != null) {
             cached = new String(t);
         }
-        if (cached != null) {
+        if(cached != null) {
             LOG.log(Level.INFO, "MSG: {0}", "Using cache for " + address);
             return cached;
         }
@@ -133,4 +136,5 @@ public abstract class Connection {
     public HttpURLConnection getCon() {
         return con;
     }
+
 }

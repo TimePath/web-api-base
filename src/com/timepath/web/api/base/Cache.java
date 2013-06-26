@@ -1,7 +1,5 @@
 package com.timepath.web.api.base;
 
-
-
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,6 +18,7 @@ import java.util.logging.Logger;
 public class Cache {
 
     private static final String cacheDirectory = "./cache/";
+
     static double minutes = 0.5;
 
     static {
@@ -39,7 +38,7 @@ public class Cache {
             return null;
         }
     }
-    
+
     static boolean disabled = true;
 
     static boolean tooOld(long time) {
@@ -84,8 +83,10 @@ public class Cache {
         } catch(Exception e) {
         }
     }
+
     private static final Logger LOG = Logger.getLogger(Cache.class.getName());
 
     private Cache() {
     }
+
 }

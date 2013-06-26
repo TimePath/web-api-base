@@ -17,14 +17,14 @@ public class RequestBuilder {
     public static String encode(String str) {
         try {
             return URLEncoder.encode(str, "ISO-8859-1");
-        } catch (UnsupportedEncodingException ex) {
+        } catch(UnsupportedEncodingException ex) {
             Logger.getLogger(RequestBuilder.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
 
     public RequestBuilder append(String key, String val) {
-        if (sb.length() > 0) {
+        if(sb.length() > 0) {
             sb.append("&");
         }
         key = encode(key);
@@ -38,12 +38,13 @@ public class RequestBuilder {
      * 2 are ignored. String[][] arr = { {"key", "val"} };
      *
      * @param arr
+     *            <p/>
      * @return
      */
     public static RequestBuilder fromArray(String[][] arr) {
         RequestBuilder rb = new RequestBuilder();
-        for (int i = 0; i < arr.length; i++) {
-            if (arr[i].length != 2) {
+        for(int i = 0; i < arr.length; i++) {
+            if(arr[i].length != 2) {
                 continue;
             }
             rb.append(arr[i][0], arr[i][1]);
@@ -55,5 +56,7 @@ public class RequestBuilder {
     public String toString() {
         return sb.toString();
     }
+
     private StringBuilder sb = new StringBuilder();
+
 }
