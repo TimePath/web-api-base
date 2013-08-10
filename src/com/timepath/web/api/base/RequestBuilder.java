@@ -41,13 +41,13 @@ public class RequestBuilder {
      *            <p/>
      * @return
      */
-    public static RequestBuilder fromArray(String[][] arr) {
+    public static RequestBuilder fromArray(Object[][] arr) {
         RequestBuilder rb = new RequestBuilder();
         for(int i = 0; i < arr.length; i++) {
             if(arr[i].length != 2) {
                 continue;
             }
-            rb.append(arr[i][0], arr[i][1]);
+            rb.append(arr[i][0].toString(), arr[i][1].toString());
         }
         return rb;
     }

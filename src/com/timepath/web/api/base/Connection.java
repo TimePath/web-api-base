@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.logging.Level;
@@ -15,50 +16,61 @@ import java.util.logging.Logger;
  *
  * @author timepath
  */
-public abstract class Connection {
+public class Connection extends HttpURLConnection {
 
-    protected Connection() {
+    protected Connection(URL u) {
+        super(u);
     }
 
-    public Connection(String method) {
-        this(null, method);
-    }
-
-    public Connection(String base, String method) {
-        if(base == null) {
-            base = getBaseUrl();
-        }
-        this.address = base + method;
-        connect();
+    public Connection(String address) throws MalformedURLException {
+        this(URI.create(address).toURL());
     }
 
     private static final Logger LOG = Logger.getLogger(Connection.class.getName());
 
-    private HttpURLConnection con = null;
-
-    private String address;
-
-    public void connect() {
+    public void connect(String method) {
+        String address = "";
+        if(method != null) {
+            if(!address.endsWith("/") && !method.startsWith("/")) {
+                address += "/";
+            }
+            address += method;
+        }
         LOG.log(Level.INFO, "Connecting: {0}", address);
         try {
-            URL u = URI.create(address).toURL();
-            con = (HttpURLConnection) u.openConnection();
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-        getCon().setRequestProperty("User-Agent", getUserAgent());
-        getCon().setReadTimeout(30000);
-        getCon().setDoOutput(true);
+        setRequestProperty("User-Agent", getUserAgent());
+        setReadTimeout(30000);
+        setDoOutput(true);
     }
 
-    public abstract String getBaseUrl();
+    @Override
+    public void disconnect() {
+//        super.disconnect();
+    }
 
-    public abstract String getUserAgent();
+    @Override
+    public boolean usingProxy() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void connect() throws IOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private String getUserAgent() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     protected String postm(String data, boolean get) {
+        connect("");
         System.out.println(">>> " + data);
         try {
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(getCon().getOutputStream()));
+            PrintWriter pw = new PrintWriter(new OutputStreamWriter(getOutputStream()));
             pw.write(data);
             pw.close();
             if(get) {
@@ -79,10 +91,18 @@ public abstract class Connection {
     }
 
     public String get() {
-        return get(true);
+        return get("");
+    }
+    
+    public String get(boolean useCache) {
+        return get("", useCache);
+    }
+    
+    public String get(String method) {
+        return get(method, true);
     }
 
-    public String get(boolean useCache) {
+    public String get(String method, boolean useCache) {
         if(useCache) {
             String ret = getCache();
             if(ret != null) {
@@ -90,8 +110,9 @@ public abstract class Connection {
                 return ret;
             }
         }
+        connect(method);
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(getCon().getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(getInputStream()));
             StringBuilder sb = new StringBuilder(8192);
             String tmp;
             while((tmp = br.readLine()) != null) {
@@ -100,7 +121,7 @@ public abstract class Connection {
             br.close();
 
             if(useCache) {
-                Cache.write(address, sb.toString());
+                Cache.write("", sb.toString());
             }
 
             try {
@@ -118,23 +139,16 @@ public abstract class Connection {
     }
 
     private String getCache() {
-        byte[] t = Cache.read(address);
+        byte[] t = Cache.read("");
         String cached = null;
         if(t != null) {
             cached = new String(t);
         }
         if(cached != null) {
-            LOG.log(Level.INFO, "MSG: {0}", "Using cache for " + address);
+            LOG.log(Level.INFO, "MSG: {0}", "Using cache for " + "");
             return cached;
         }
         return null;
-    }
-
-    /**
-     * @return the con
-     */
-    public HttpURLConnection getCon() {
-        return con;
     }
 
 }
