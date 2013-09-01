@@ -16,17 +16,33 @@ import java.util.logging.Logger;
  *
  * @author timepath
  */
-public class Connection extends HttpURLConnection {
+public abstract class Connection {
 
-    protected Connection(URL u) {
-        super(u);
+    private HttpURLConnection con;
+
+    URL url;
+
+    String base;
+
+    String method;
+
+    public Connection(String base, String method) throws MalformedURLException {
+        if(base != null) {
+            this.base = base;
+        }
+        this.method = method;
+        this.url = URI.create(getBaseUrl() + method).toURL();
     }
 
-    public Connection(String address) throws MalformedURLException {
-        this(URI.create(address).toURL());
+    public Connection(String method) throws MalformedURLException {
+        this(null, method);
     }
 
     private static final Logger LOG = Logger.getLogger(Connection.class.getName());
+
+    public String getBaseUrl() {
+        return base;
+    }
 
     public void connect(String method) {
         String address = "";
@@ -38,39 +54,32 @@ public class Connection extends HttpURLConnection {
         }
         LOG.log(Level.INFO, "Connecting: {0}", address);
         try {
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con = (HttpURLConnection) url.openConnection();
+            con.setRequestProperty("User-Agent", getUserAgent());
+            con.setReadTimeout(30000);
+            con.setDoOutput(true);
+            onConnect();
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-        setRequestProperty("User-Agent", getUserAgent());
-        setReadTimeout(30000);
-        setDoOutput(true);
     }
 
-    @Override
-    public void disconnect() {
-//        super.disconnect();
+    public abstract String getUserAgent();
+
+    public HttpURLConnection getCon() {
+        return con;
     }
 
-    @Override
-    public boolean usingProxy() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected void onConnect() {
     }
 
-    @Override
-    public void connect() throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    private String getUserAgent() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    ;
 
     protected String postm(String data, boolean get) {
         connect("");
         System.out.println(">>> " + data);
         try {
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(getOutputStream()));
+            PrintWriter pw = new PrintWriter(new OutputStreamWriter(con.getOutputStream()));
             pw.write(data);
             pw.close();
             if(get) {
@@ -93,11 +102,11 @@ public class Connection extends HttpURLConnection {
     public String get() {
         return get("");
     }
-    
+
     public String get(boolean useCache) {
         return get("", useCache);
     }
-    
+
     public String get(String method) {
         return get(method, true);
     }
@@ -112,7 +121,7 @@ public class Connection extends HttpURLConnection {
         }
         connect(method);
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
             StringBuilder sb = new StringBuilder(8192);
             String tmp;
             while((tmp = br.readLine()) != null) {
