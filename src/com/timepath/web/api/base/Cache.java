@@ -1,10 +1,6 @@
 package com.timepath.web.api.base;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Date;
@@ -13,20 +9,23 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author timepath
+ * @author TimePath
  */
 public class Cache {
 
     private static final String cacheDirectory = "./cache/";
 
+    private static final Logger LOG = Logger.getLogger(Cache.class.getName());
+
     static double minutes = 0.5;
 
+    static boolean disabled = true;
     static {
         File f = new File(cacheDirectory);
         f.mkdirs();
     }
 
-    static public String convertToCacheName(String url) {
+    public static String convertToCacheName(String url) {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
             digest.update(url.getBytes());
@@ -37,20 +36,6 @@ public class Cache {
             LOG.log(Level.SEVERE, "MD5: {0}", e.toString());
             return null;
         }
-    }
-
-    static boolean disabled = true;
-
-    static boolean tooOld(long time) {
-        if(disabled) {
-            return true;
-        }
-        long now = new Date().getTime();
-        long diff = now - time;
-        if(diff >= 1000 * 60 * minutes) {
-            return true;
-        }
-        return false;
     }
 
     public static byte[] read(String url) {
@@ -84,7 +69,14 @@ public class Cache {
         }
     }
 
-    private static final Logger LOG = Logger.getLogger(Cache.class.getName());
+    static boolean tooOld(long time) {
+        if(disabled) {
+            return true;
+        }
+        long now = new Date().getTime();
+        long diff = now - time;
+        return diff >= 1000 * 60 * minutes;
+    }
 
     private Cache() {
     }

@@ -1,10 +1,6 @@
 package com.timepath.web.api.base;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -20,13 +16,13 @@ public abstract class Connection {
 
     private static final Logger LOG = Logger.getLogger(Connection.class.getName());
 
+    private HttpURLConnection connection;
+
     protected String base;
 
     public String getBaseUrl() {
         return base;
     }
-
-    protected abstract long mindelay();
 
     public HttpURLConnection connect(String method) throws MalformedURLException {
         String address = getBaseUrl();
@@ -54,9 +50,6 @@ public abstract class Connection {
 
     public abstract String getUserAgent();
 
-    protected void onConnect(HttpURLConnection con) {
-    }
-
     public String get(String method, boolean useCache) throws MalformedURLException {
         HttpURLConnection con = connect(method);
         return getm(con, useCache);
@@ -73,8 +66,6 @@ public abstract class Connection {
     public String postget(String method, String data) throws MalformedURLException {
         return postm(method, data, true);
     }
-
-    private HttpURLConnection connection;
 
     public HttpURLConnection getCon() {
         return connection;
@@ -117,6 +108,24 @@ public abstract class Connection {
         }
     }
 
+    private String getCache() {
+        byte[] t = Cache.read("");
+        String cached = null;
+        if(t != null) {
+            cached = new String(t);
+        }
+        if(cached != null) {
+            LOG.log(Level.INFO, "MSG: {0}", "Using cache for " + "");
+            return cached;
+        }
+        return null;
+    }
+
+    protected abstract long mindelay();
+
+    protected void onConnect(HttpURLConnection con) {
+    }
+
     protected String postm(String method, String data, boolean get) throws MalformedURLException {
         HttpURLConnection con = connect(method);
         LOG.log(Level.INFO, ">>> {0}", data);
@@ -134,19 +143,6 @@ public abstract class Connection {
         }
         if(get) {
             return getm(con, false);
-        }
-        return null;
-    }
-
-    private String getCache() {
-        byte[] t = Cache.read("");
-        String cached = null;
-        if(t != null) {
-            cached = new String(t);
-        }
-        if(cached != null) {
-            LOG.log(Level.INFO, "MSG: {0}", "Using cache for " + "");
-            return cached;
         }
         return null;
     }

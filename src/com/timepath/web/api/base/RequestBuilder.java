@@ -7,12 +7,11 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author timepath
+ * @author TimePath
  */
 public class RequestBuilder {
 
-    public RequestBuilder() {
-    }
+    private static final Logger LOG = Logger.getLogger(RequestBuilder.class.getName());
 
     public static String encode(String str) {
         try {
@@ -21,16 +20,6 @@ public class RequestBuilder {
             Logger.getLogger(RequestBuilder.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
-    }
-
-    public RequestBuilder append(String key, String val) {
-        if(sb.length() > 0) {
-            sb.append("&");
-        }
-        key = encode(key);
-        val = encode(val);
-        sb.append(key).append("=").append(val);
-        return this;
     }
 
     /**
@@ -43,20 +32,33 @@ public class RequestBuilder {
      */
     public static RequestBuilder fromArray(Object[][] arr) {
         RequestBuilder rb = new RequestBuilder();
-        for(int i = 0; i < arr.length; i++) {
-            if(arr[i].length != 2) {
+        for(Object[] arr1 : arr) {
+            if(arr1.length != 2) {
                 continue;
             }
-            rb.append(arr[i][0].toString(), arr[i][1].toString());
+            rb.append(arr1[0].toString(), arr1[1].toString());
         }
         return rb;
+    }
+
+    private final StringBuilder sb = new StringBuilder();
+
+    public RequestBuilder() {
+    }
+
+    public RequestBuilder append(String key, String val) {
+        if(sb.length() > 0) {
+            sb.append("&");
+        }
+        key = encode(key);
+        val = encode(val);
+        sb.append(key).append("=").append(val);
+        return this;
     }
 
     @Override
     public String toString() {
         return sb.toString();
     }
-
-    private StringBuilder sb = new StringBuilder();
 
 }
