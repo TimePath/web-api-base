@@ -99,7 +99,7 @@ public abstract class Connection {
 //                    LOG.log(Level.SEVERE, null, ex);
 //                }
 //            }
-            LOG.log(Level.INFO, "<<< {0}", sb.toString());
+            LOG.log(Level.INFO, "<<< {0}\n<<< {1}", new Object[] {con.getHeaderFields(), sb.toString()});
             return sb.toString();
         } catch(IOException e) {
             e.printStackTrace();
@@ -123,8 +123,7 @@ public abstract class Connection {
 
     protected abstract long mindelay();
 
-    protected void onConnect(HttpURLConnection con) {
-    }
+    protected abstract void onConnect(HttpURLConnection con);
 
     protected String postm(String method, String data, boolean get) throws MalformedURLException {
         HttpURLConnection con = connect(method);
