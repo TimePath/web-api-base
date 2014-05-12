@@ -9,22 +9,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author TimePath
  */
 public abstract class Connection {
 
     private static final Logger LOG = Logger.getLogger(Connection.class.getName());
-
     private HttpURLConnection connection;
+    private String base;
 
-    protected String base;
-
-    public String getBaseUrl() {
-        return base;
+    public String get(String method) throws MalformedURLException {
+        return get(method, true);
     }
 
-    public HttpURLConnection connect(String method) throws MalformedURLException {
+    String get(String method, boolean useCache) throws MalformedURLException {
+        HttpURLConnection con = connect(method); return getm(con, useCache);
+    }
+
+    HttpURLConnection connect(String method) throws MalformedURLException {
         String address = getBaseUrl();
         if(method != null) {
             if(!address.endsWith("/") && !method.startsWith("/")) {
@@ -48,30 +49,15 @@ public abstract class Connection {
         return con;
     }
 
-    public abstract String getUserAgent();
-
-    public String get(String method, boolean useCache) throws MalformedURLException {
-        HttpURLConnection con = connect(method);
-        return getm(con, useCache);
+    protected String getBaseUrl() {
+        return base;
     }
 
-    public String get(String method) throws MalformedURLException {
-        return get(method, true);
-    }
+    protected abstract String getUserAgent();
 
-    public void post(String method, String data) throws MalformedURLException {
-        postm(method, data, false);
-    }
+    protected abstract void onConnect(HttpURLConnection con);
 
-    public String postget(String method, String data) throws MalformedURLException {
-        return postm(method, data, true);
-    }
-
-    public HttpURLConnection getCon() {
-        return connection;
-    }
-
-    public String getm(HttpURLConnection con, boolean useCache) {
+    String getm(HttpURLConnection con, boolean useCache) {
         if(useCache) {
             String ret = getCache();
             if(ret != null) {
@@ -82,33 +68,29 @@ public abstract class Connection {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
             StringBuilder sb = new StringBuilder(8192);
-            String tmp;
-            while((tmp = br.readLine()) != null) {
-                sb.append(tmp).append("\n");
+            String tmp; while(( tmp = br.readLine() ) != null) {
+                sb.append(tmp).append('\n');
             }
             br.close();
-
             if(useCache) {
                 Cache.write("", sb.toString());
             }
-
-//            if(mindelay() > 0) {
-//                try {
-//                    Thread.sleep(mindelay());
-//                } catch(InterruptedException ex) {
-//                    LOG.log(Level.SEVERE, null, ex);
-//                }
-//            }
-            LOG.log(Level.INFO, "<<< {0}\n<<< {1}", new Object[] {con.getHeaderFields(), sb.toString()});
+            //            if(mindelay() > 0) {
+            //                try {
+            //                    Thread.sleep(mindelay());
+            //                } catch(InterruptedException ex) {
+            //                    LOG.log(Level.SEVERE, null, ex);
+            //                }
+            //            }
+            LOG.log(Level.INFO, "<<< {0}\n<<< {1}", new Object[] { con.getHeaderFields(), sb.toString() });
             return sb.toString();
         } catch(IOException e) {
-            e.printStackTrace();
-            LOG.log(Level.WARNING, "READ FAILED: {0}", e.toString());
+            LOG.log(Level.WARNING, "READ FAILED: {0}", e);
             return null;
         }
     }
 
-    private String getCache() {
+    private static String getCache() {
         byte[] t = Cache.read("");
         String cached = null;
         if(t != null) {
@@ -121,11 +103,11 @@ public abstract class Connection {
         return null;
     }
 
-    protected abstract long mindelay();
+    public void post(String method, String data) throws MalformedURLException {
+        postm(method, data, false);
+    }
 
-    protected abstract void onConnect(HttpURLConnection con);
-
-    protected String postm(String method, String data, boolean get) throws MalformedURLException {
+    String postm(String method, String data, boolean get) throws MalformedURLException {
         HttpURLConnection con = connect(method);
         LOG.log(Level.INFO, ">>> {0}", data);
         PrintWriter pw = null;
@@ -146,4 +128,13 @@ public abstract class Connection {
         return null;
     }
 
+    public String postget(String method, String data) throws MalformedURLException {
+        return postm(method, data, true);
+    }
+
+    public HttpURLConnection getCon() {
+        return connection;
+    }
+
+    protected abstract long mindelay();
 }

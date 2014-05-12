@@ -6,28 +6,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author TimePath
  */
 public class RequestBuilder {
 
-    private static final Logger LOG = Logger.getLogger(RequestBuilder.class.getName());
-
-    public static String encode(String str) {
-        try {
-            return URLEncoder.encode(str, "ISO-8859-1");
-        } catch(UnsupportedEncodingException ex) {
-            Logger.getLogger(RequestBuilder.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
-    }
+    private static final Logger        LOG = Logger.getLogger(RequestBuilder.class.getName());
+    private final        StringBuilder sb  = new StringBuilder();
 
     /**
      * Builds requests from an array format. Sub arrays of any length other than
      * 2 are ignored. String[][] arr = { {"key", "val"} };
      *
      * @param arr
-     *            <p/>
+     *         *
+     *
      * @return
      */
     public static RequestBuilder fromArray(Object[][] arr) {
@@ -41,24 +33,25 @@ public class RequestBuilder {
         return rb;
     }
 
-    private final StringBuilder sb = new StringBuilder();
-
-    public RequestBuilder() {
-    }
-
     public RequestBuilder append(String key, String val) {
         if(sb.length() > 0) {
-            sb.append("&");
+            sb.append('&');
         }
         key = encode(key);
-        val = encode(val);
-        sb.append(key).append("=").append(val);
+        val = encode(val); sb.append(key).append('=').append(val);
         return this;
+    }
+
+    private static String encode(String str) {
+        try {
+            return URLEncoder.encode(str, "ISO-8859-1");
+        } catch(UnsupportedEncodingException ex) {
+            Logger.getLogger(RequestBuilder.class.getName()).log(Level.SEVERE, null, ex);
+        } return null;
     }
 
     @Override
     public String toString() {
         return sb.toString();
     }
-
 }
