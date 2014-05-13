@@ -15,14 +15,17 @@ public abstract class Connection {
 
     private static final Logger LOG = Logger.getLogger(Connection.class.getName());
     private HttpURLConnection connection;
-    private String base;
+    private String            base;
+
+    protected Connection() {}
 
     public String get(String method) throws MalformedURLException {
         return get(method, true);
     }
 
     String get(String method, boolean useCache) throws MalformedURLException {
-        HttpURLConnection con = connect(method); return getm(con, useCache);
+        HttpURLConnection con = connect(method);
+        return getm(con, useCache);
     }
 
     HttpURLConnection connect(String method) throws MalformedURLException {
@@ -57,7 +60,7 @@ public abstract class Connection {
 
     protected abstract void onConnect(HttpURLConnection con);
 
-    String getm(HttpURLConnection con, boolean useCache) {
+    static String getm(HttpURLConnection con, boolean useCache) {
         if(useCache) {
             String ret = getCache();
             if(ret != null) {
@@ -68,7 +71,8 @@ public abstract class Connection {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
             StringBuilder sb = new StringBuilder(8192);
-            String tmp; while(( tmp = br.readLine() ) != null) {
+            String tmp;
+            while(( tmp = br.readLine() ) != null) {
                 sb.append(tmp).append('\n');
             }
             br.close();
