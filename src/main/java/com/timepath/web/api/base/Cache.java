@@ -1,5 +1,8 @@
 package com.timepath.web.api.base;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -18,17 +21,18 @@ public class Cache {
     private static boolean enabled;
 
     static {
-        File f = new File(CACHE_DIRECTORY);
+        @NotNull File f = new File(CACHE_DIRECTORY);
         f.mkdirs();
     }
 
     private Cache() {
     }
 
-    public static byte[] read(String url) {
+    @Nullable
+    public static byte[] read(@NotNull String url) {
         try {
-            String file = CACHE_DIRECTORY + '/' + convertToCacheName(url);
-            File f = new File(file);
+            @NotNull String file = CACHE_DIRECTORY + '/' + convertToCacheName(url);
+            @NotNull File f = new File(file);
             if (!f.exists() || (f.length() < 1)) {
                 return null;
             }
@@ -36,8 +40,8 @@ public class Cache {
                 // Delete the cached file if it is too old
                 f.delete();
             }
-            byte[] data = new byte[(int) f.length()];
-            DataInputStream fis = new DataInputStream(new FileInputStream(f));
+            @NotNull byte[] data = new byte[(int) f.length()];
+            @NotNull DataInputStream fis = new DataInputStream(new FileInputStream(f));
             fis.readFully(data);
             fis.close();
             return data;
@@ -46,12 +50,13 @@ public class Cache {
         }
     }
 
-    private static String convertToCacheName(String url) {
+    @Nullable
+    private static String convertToCacheName(@NotNull String url) {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
             digest.update(url.getBytes());
             byte[] b = digest.digest();
-            BigInteger bi = new BigInteger(b);
+            @NotNull BigInteger bi = new BigInteger(b);
             return "mycache_" + bi.toString(16) + ".cac";
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "MD5: {0}", e.toString());
@@ -68,10 +73,10 @@ public class Cache {
         return diff >= (1000 * 60 * minutes);
     }
 
-    public static void write(String url, String data) {
+    public static void write(@NotNull String url, String data) {
         try {
-            String file = CACHE_DIRECTORY + '/' + convertToCacheName(url);
-            PrintWriter pw = new PrintWriter(new FileWriter(file));
+            @NotNull String file = CACHE_DIRECTORY + '/' + convertToCacheName(url);
+            @NotNull PrintWriter pw = new PrintWriter(new FileWriter(file));
             pw.print(data);
             pw.close();
         } catch (Exception ignored) {

@@ -1,5 +1,8 @@
 package com.timepath.web.api.base;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.logging.Level;
@@ -23,9 +26,10 @@ public class RequestBuilder {
      * @param arr *
      * @return
      */
-    public static RequestBuilder fromArray(Object[][] arr) {
-        RequestBuilder rb = new RequestBuilder();
-        for (Object[] arr1 : arr) {
+    @NotNull
+    public static RequestBuilder fromArray(@NotNull Object[][] arr) {
+        @NotNull RequestBuilder rb = new RequestBuilder();
+        for (@NotNull Object[] arr1 : arr) {
             if (arr1.length != 2) {
                 continue;
             }
@@ -34,6 +38,7 @@ public class RequestBuilder {
         return rb;
     }
 
+    @Nullable
     private static String encode(String str) {
         try {
             return URLEncoder.encode(str, "ISO-8859-1");
@@ -43,6 +48,7 @@ public class RequestBuilder {
         return null;
     }
 
+    @NotNull
     public RequestBuilder append(String key, String val) {
         if (sb.length() > 0) {
             sb.append('&');
@@ -53,6 +59,7 @@ public class RequestBuilder {
         return this;
     }
 
+    @NotNull
     @Override
     public String toString() {
         return sb.toString();

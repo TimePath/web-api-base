@@ -1,5 +1,8 @@
 package com.timepath.web.api.base;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -14,23 +17,25 @@ import java.util.logging.Logger;
 public abstract class Connection {
 
     private static final Logger LOG = Logger.getLogger(Connection.class.getName());
+    @Nullable
     private HttpURLConnection connection;
     private String base;
 
     protected Connection() {
     }
 
-    static String getm(HttpURLConnection con, boolean useCache) {
+    @Nullable
+    static String getm(@NotNull HttpURLConnection con, boolean useCache) {
         if (useCache) {
-            String ret = getCache();
+            @Nullable String ret = getCache();
             if (ret != null) {
                 LOG.log(Level.INFO, "<<< (cache) {0}", ret);
                 return ret;
             }
         }
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            StringBuilder sb = new StringBuilder(8192);
+            @NotNull BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            @NotNull StringBuilder sb = new StringBuilder(8192);
             String tmp;
             while ((tmp = br.readLine()) != null) {
                 sb.append(tmp).append('\n');
@@ -54,9 +59,10 @@ public abstract class Connection {
         }
     }
 
+    @Nullable
     private static String getCache() {
-        byte[] t = Cache.read("");
-        String cached = null;
+        @Nullable byte[] t = Cache.read("");
+        @Nullable String cached = null;
         if (t != null) {
             cached = new String(t);
         }
@@ -67,17 +73,20 @@ public abstract class Connection {
         return null;
     }
 
+    @Nullable
     public String get(String method) throws MalformedURLException {
         return get(method, true);
     }
 
+    @Nullable
     String get(String method, boolean useCache) throws MalformedURLException {
-        HttpURLConnection con = connect(method);
+        @Nullable HttpURLConnection con = connect(method);
         return getm(con, useCache);
     }
 
-    HttpURLConnection connect(String method) throws MalformedURLException {
-        String address = getBaseUrl();
+    @Nullable
+    HttpURLConnection connect(@Nullable String method) throws MalformedURLException {
+        @Nullable String address = getBaseUrl();
         if (method != null) {
             if (!address.endsWith("/") && !method.startsWith("/")) {
                 address += "/";
@@ -85,8 +94,8 @@ public abstract class Connection {
             address += method;
         }
         LOG.log(Level.INFO, "Connecting: {0}", address);
-        URL url = URI.create(address).toURL();
-        HttpURLConnection con = null;
+        @NotNull URL url = URI.create(address).toURL();
+        @Nullable HttpURLConnection con = null;
         try {
             con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("User-Agent", getUserAgent());
@@ -104,18 +113,20 @@ public abstract class Connection {
         return base;
     }
 
+    @NotNull
     protected abstract String getUserAgent();
 
     protected abstract void onConnect(HttpURLConnection con);
 
-    public void post(String method, String data) throws MalformedURLException {
+    public void post(String method, @NotNull String data) throws MalformedURLException {
         postm(method, data, false);
     }
 
-    String postm(String method, String data, boolean get) throws MalformedURLException {
-        HttpURLConnection con = connect(method);
+    @Nullable
+    String postm(String method, @NotNull String data, boolean get) throws MalformedURLException {
+        @Nullable HttpURLConnection con = connect(method);
         LOG.log(Level.INFO, ">>> {0}", data);
-        PrintWriter pw = null;
+        @Nullable PrintWriter pw = null;
         try {
             pw = new PrintWriter(new OutputStreamWriter(con.getOutputStream()));
             pw.write(data);
@@ -133,10 +144,12 @@ public abstract class Connection {
         return null;
     }
 
-    public String postget(String method, String data) throws MalformedURLException {
+    @Nullable
+    public String postget(String method, @NotNull String data) throws MalformedURLException {
         return postm(method, data, true);
     }
 
+    @Nullable
     public HttpURLConnection getCon() {
         return connection;
     }
