@@ -53,7 +53,7 @@ public class Cache {
     @Nullable
     private static String convertToCacheName(@NotNull String url) {
         try {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
+            @NotNull MessageDigest digest = MessageDigest.getInstance("MD5");
             digest.update(url.getBytes());
             byte[] b = digest.digest();
             @NotNull BigInteger bi = new BigInteger(b);

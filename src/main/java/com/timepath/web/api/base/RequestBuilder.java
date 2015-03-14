@@ -39,7 +39,7 @@ public class RequestBuilder {
     }
 
     @Nullable
-    private static String encode(String str) {
+    private static String encode(@NotNull String str) {
         try {
             return URLEncoder.encode(str, "ISO-8859-1");
         } catch (UnsupportedEncodingException ex) {
